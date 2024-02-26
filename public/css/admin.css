@@ -1,0 +1,17 @@
+body{
+    display: flex;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+}
+label{
+    height: 15px;
+}
+
+#template{
+    margin: 15px 15px 0px 15px;
+    gap: 15px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
