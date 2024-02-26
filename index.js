@@ -1,9 +1,26 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import multer from 'multer';
+const express = require('express');
+const bodyParser = require('body-parser');
+const multer = require('multer');
+const { createRequire } = require('module');
+
+const require = createRequire(import.meta.url);
+const path = require('path');
+
 const app = express();
 let upload = multer();
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.set('view engine', 'ejs');
+
+app.get('/', (req, res) => res.render('pages/index'));
+app.get('/login', (req, res) => res.render('pages/login'));
+app.get('/register', (req, res) => res.render('pages/register'));
+
+const __filename = require.resolve(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 let users = [];
 
@@ -16,22 +33,6 @@ const addUser = (email, user, pass) => {
     users.push(newConta);
 };
 
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.set('view engine', 'ejs');
-
-app.get('/', (req, res) => res.render('pages/index'));
-app.get('/login', (req, res) => res.render('pages/login'));
-app.get('/register', (req, res) => res.render('pages/register'));
-
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-app.use(express.static(__dirname + '/public'));
 
 app.post('/sucess', (req, res) => {
     if (users.find(login => login.user === req.body.user && login.pass === req.body.pass)) {
