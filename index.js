@@ -2,21 +2,62 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const multer = require("multer");
 const path = require("path");
-
+const session = require('express-session');
 const app = express();
 let upload = multer();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.set("view engine", "ejs");
+app.use(session({
+  secret: 'secret-key',
+  resave: false,
+  saveUninitialized: true
+}));
 
-app.get("/", (req, res) => res.render("pages/index"));
-app.get("/login", (req, res) => res.render("pages/login"));
-app.get("/register", (req, res) => res.render("pages/register"));
+app.get("/", (req, res) => {
+  if (req.session.username) {
+    res.redirect('/sucesso');
+  } else {
+    res.render("pages/index")
+  }
+});
+
+app.get("/login", (req, res) => {
+  if (req.session.username) {
+    res.redirect('/sucesso');
+  } else {
+    res.render("pages/login")
+  }
+});
+
+app.get("/register", (req, res) => {
+  if (req.session.username) {
+    res.redirect('/sucesso');
+  } else {
+    res.render("pages/register")
+  }
+});
+
+app.get("/sucesso", (req, res) => {
+  if (!req.session.username) {
+    res.redirect('/login');
+  } else {
+    res.render("pages/sucess")
+  }
+});
+
+app.get("/falho", (req, res) => {
+  if (!req.session.username) {
+    res.redirect('/login');
+  } else {
+    res.render("pages/invalid")
+  }
+});
 
 app.use(express.static(path.join(__dirname, "public")));
 
-let users = [];
+let users = [{ email: `guiguidavidavi9@gmail.com`, user: `Gui`, pass: `123` }];
 
 const addUser = (email, user, pass) => {
   const newConta = {
@@ -33,10 +74,12 @@ app.post("/sucess", (req, res) => {
       (login) => login.user === req.body.user && login.pass === req.body.pass
     )
   ) {
-    res.render("pages/sucess");
+    req.session.username = req.body.user
+    res.cookie(`username`, req.body.user)
+    res.redirect("/sucesso");
     res.status(200);
   } else {
-    res.render("pages/invalid");
+    res.redirect("/falho");
     res.status(401);
   }
 });
@@ -112,6 +155,13 @@ app.post("/adminpage/delete", (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy(function (err) {
+    res.clearCookie('username');
+    res.redirect('/');
+  })
 });
 
 app.listen(3000, () => console.log("Server ready"));
